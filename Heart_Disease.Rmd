@@ -1,0 +1,102 @@
+---
+title: "Statistical Analysis on UCI Heart Disease Data - Probability & Stats Project"
+author: "Abhijit - Saksham - Sharvin"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r full-analysis, echo=TRUE}
+
+## R Markdown
+setwd("D:/Sharvin  Jio Institute/Probability & Stats!/et/")
+
+#Load the dataset
+# The dataset is from kaggle. 
+# Link : https://www.kaggle.com/datasets/redwankarimsony/heart-disease-data/
+
+heart_disease=read.csv("heart_disease_uci.csv")
+head(heart_disease)
+
+numerical_cols = c("age", "trestbps", "chol", "thalch", "oldpeak", "ca")
+
+#Mean of Age
+mean_age=mean(heart_disease$age, na.rm = TRUE)
+mean_age
+summary(heart_disease)
+# <!-- We have 8 categorical columns and 6 numerical columns. -->
+# <!-- Most patients are from the Cleveland dataset. -->
+# <!-- Typical angina and asymptomatic chest pain types are the most common. -->
+# <!-- Most patients have 0 major vessels colored during fluoroscopy. -->
+# <!-- The mean values are: -->
+# <!-- Age: ~53.5 years -->
+# <!-- Resting BP: ~132 -->
+# <!-- Cholesterol: ~199 -->
+# <!-- Max Heart Rate: ~137 -->
+# <!-- ST Depression (Oldpeak): ~0.88 -->
+
+#Finding for any Co-relation between the given dataset
+
+numerical_cols = c("age", "trestbps", "chol", "thalch", "oldpeak", "ca")
+num_data=heart_disease[,numerical_cols]
+cor_matrix= cor(num_data,use="complete.obs")
+print(cor_matrix)
+
+#Correlation Analysis
+# <!-- age is negatively correlated with thalch (maximum heart rate) → as age increases, heart rate decreases. -->
+# <!-- age is positively correlated with ca (number of blocked vessels) and oldpeak (ST depression). -->
+# <!-- trestbps is weakly correlated with oldpeak. -->
+# <!-- chol is weakly correlated with thalch. -->
+# <!-- ca is moderately correlated with oldpeak. -->
+
+# 2. One Sample and Two Sample T-Test
+t.test(heart_disease$chol, mu = 200)
+# <!-- p is high → null will fly. -->
+# <!-- Since p-value > 0.05, we accept the null hypothesis. -->
+# <!-- There is no significant difference between the sample mean and the assumed value of 200 mg/dL. -->
+
+
+heart_disease$target <- ifelse(heart_disease$num == 0, 0, 1)
+
+t.test(thalch ~ target, data = heart_disease)
+# <!-- p is low → null will go: Null hypothesis is rejected. -->
+# <!-- Sample means are significantly different. -->
+# <!-- Patients with heart disease have a significantly lower average maximum heart rate compared to those without heart disease. -->
+
+table(heart_disease$cp)
+#Anova:  chol ~ as.factor(cp)
+
+anova_result <- aov(chol ~ as.factor(cp), data = heart_disease)
+summary(anova_result)
+# <!-- Since the p-value (0.0000598) is less than the typical alpha level of 0.05 (or even 0.01 or 0.001), we reject the null hypothesis. -->
+# <!-- there's a significant difference in cholesterol across chest pain types. -->
+
+#Simple Linear Regression
+regression_model = lm(chol ~ age, data = heart_disease)
+summary(regression_model)
+# <!-- The coefficient for age is -1.017, meaning for every 1-year increase in age, the cholesterol decreases by ~1.02 units, on average. -->
+# <!-- The p-value for age = 0.0101 -->
+# <!-- p is low → null will go: Null hypothesis is rejected. -->
+# <!-- This means the effect of age on cholesterol is statistically significant. -->
+# <!-- R-squared = 0.0074 -->
+# <!-- Only 0.74% of the variability in cholesterol is explained by age — the model has a weak predictive power. -->
+# <!-- F-statistic = 6.653, p = 0.01006 -->
+
+table_cp_target <- table(heart_disease$cp, heart_disease$target)
+chi_result <- chisq.test(table_cp_target)
+chi_result
+# <!-- Tested whether there is a significant association between chest pain type (cp) and heart disease presence (target). -->
+# <!-- X² = 102.56 -->
+# <!-- df = 3 -->
+# <!-- p-value < 2.2e-16 -->
+# <!-- Interpretation: -->
+# <!-- p is low → null will go: Null hypothesis is rejected. -->
+# <!-- There is a significant association between chest pain type and heart disease. -->
+
+
+
+
+
+
